@@ -1,0 +1,32 @@
+- name: Install iptables-persistent
+  apt:
+    name: "{{ item }}"
+    state: present
+  loop:
+#    - fail2ban
+    - iptables-persistent
+    - rkhunter
+
+
+- name: Configure iptables firewall rules
+  iptables:
+    state: present
+    chain: INPUT
+    policy: DROP
+    rules:
+      - '-A INPUT -i lo -j ACCEPT'
+      - '-A INPUT -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT'
+      - '-A INPUT -p tcp -m multiport --dports 22,80,443 -j ACCEPT'
+      # Add more rules as needed
+
+
+- name: Save iptables rules
+  iptables_save:
+    dest: /etc/iptables/rules.v4
+
+
+#- name: Configure fail2ban
+#  template:
+#    src: fail2ban.j2
+#    dest: /etc/fail2ban/jail.local
+#  notify: restart fail2ban

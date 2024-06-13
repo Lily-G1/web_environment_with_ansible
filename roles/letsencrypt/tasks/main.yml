@@ -1,0 +1,88 @@
+#- name: Replace dots with underscores for the domain variable
+#  set_fact:
+#    converted_domain: "{{ domain | regex_replace('\\.', '_') }}"
+
+
+- name: Create required directories in /etc/letsencrypt
+  file:
+    path: "/etc/letsencrypt/{{ item }}"
+    state: directory
+    owner: root
+    group: root
+    mode: u=rwx,g=x,o=x
+  with_items:
+  - account
+  - certs
+  - csrs
+  - keys
+
+
+- name: Generate LetsEncrypt account key
+  tags: le
+  shell: "if [ ! -f {{ letsencrypt_account_key }} ]; then openssl genrsa 4096 | sudo tee {{ letsencrypt_account_key }}; fi"
+
+
+- name: Generate LetsEncrypt private key
+  tags: le
+  shell: "openssl genrsa 4096 | sudo tee /etc/letsencrypt/keys/{{ domain }}.key"
+
+
+- name: Generate LetsEncrypt CSR
+  tags: le
+  shell: "openssl req -new -sha256 -key /etc/letsencrypt/keys/{{ domain }}.key -subj \"/CN={{ domain }}\" -reqexts SAN -config <(cat /etc/ssl/openssl.cnf <(printf \"\n[SAN]\nsubjectAltName=DNS:{{ domain }},DNS:www.{{ domain }}\")) | sudo tee /etc/letsencrypt/csrs/{{ domain }}.csr"
+  args:
+    executable: /bin/bash
+
+
+- name: Begin LetsEncrypt challenges
+  tags: le
+  acme_certificate:
+    acme_directory: "{{ acme_directory }}"
+    acme_version: "{{ acme_version }}"
+    account_key_src: "{{ letsencrypt_account_key }}"
+    account_email: "{{ acme_email }}"
+    terms_agreed: 1
+    challenge: "{{ acme_challenge_type }}"
+    csr: "{{ letsencrypt_csrs_dir }}/{{ domain }}.csr"
+    dest: "{{ letsencrypt_certs_dir }}/{{ domain }}.crt"
+    fullchain_dest: "{{ letsencrypt_certs_dir }}/fullchain_{{ domain }}.crt"
+    remaining_days: 91
+  register: acme_challenge_data
+
+
+- name: Create .well-known/acme-challenge directory
+  tags: le
+  file:
+    path: "/var/www/{{ domain }}/.well-known/acme-challenge"
+    state: directory
+    owner: www-data
+    group: www-data
+    mode: u=rwx,g=rx,o=rx
+
+
+- name: Implement http-01 challenge files
+  tags: le
+  copy:
+    content: "{{ acme_challenge_data['challenge_data'][item]['http-01']['resource_value'] }}"
+    dest: "/var/www/{{ domain }}/{{ acme_challenge_data['challenge_data'][item]['http-01']['resource'] }}"
+    owner: www-data
+    group: www-data
+    mode: u=rw,g=r,o=r
+  with_items:
+  - "{{ domain }}"
+  - "www.{{ domain }}"
+
+
+- name: Complete LetsEncrypt challenges
+  tags: le
+  acme_certificate:
+    acme_directory: "{{ acme_directory }}"
+    acme_version: "{{ acme_version }}"
+    account_key_src: "{{ letsencrypt_account_key }}"
+    account_email: "{{ acme_email }}"
+    challenge: "{{ acme_challenge_type }}"
+    csr: "{{ letsencrypt_csrs_dir }}/{{ domain }}.csr"
+    dest: "{{ letsencrypt_certs_dir }}/{{ domain }}.crt"
+    chain_dest: "{{ letsencrypt_certs_dir }}/chain_{{ domain }}.crt"
+    fullchain_dest: "{{ letsencrypt_certs_dir }}/fullchain_{{ domain }}"
+    data: "{{ acme_challenge_data }}"

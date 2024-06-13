@@ -1,0 +1,24 @@
+#- name: install updates (Ubuntu)
+#  tags: always
+#  apt:
+#    upgrade: dist
+#    update_cache: yes
+#  when: ansible_distribution == "Ubuntu"
+
+- name: install LAMP, Certbot, Bind9 & required python libraries
+  tags: apache, mysql, php, lamp, bind9
+  package:
+    name:
+      - ufw
+      - apache2
+      - mysql-server
+      - php
+      - php-mysql
+      - libapache2-mod-php
+      - bind9
+      - bind9utils
+      - bind9-doc
+      - certbot
+      - python3-certbot-apache
+      - python3-pymysql
+    state: latest

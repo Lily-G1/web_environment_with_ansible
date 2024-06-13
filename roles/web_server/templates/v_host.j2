@@ -1,0 +1,19 @@
+<VirtualHost *:80>
+
+   ServerName {{ domain }}
+   ServerAlias www.{{ domain }}
+   Redirect permanent / https://{{ domain }}/
+   DocumentRoot /var/www/{{ domain }}
+
+   ServerAdmin webmaster@{{ domain }}
+   ErrorLog /var/log/apache2/{{ domain }}_error.log
+   CustomLog /var/log/apache2/{{ domain }}_access.log combined
+
+<Directory /var/www/{{ domain }}/admin>
+	Require all denied
+	Require ip {{ ip }}
+	Require ip 10.0.2.15/24
+	Require local 
+</Directory>
+
+</VirtualHost>

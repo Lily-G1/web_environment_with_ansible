@@ -1,0 +1,20 @@
+---
+- hosts: _web_server_dev
+  become: true
+  become_method: sudo
+
+  pre_tasks:
+  - name: install updates (Ubuntu)
+    tags: always
+    apt:
+      upgrade: dist
+      update_cache: yes
+    when: ansible_distribution == "Ubuntu"
+
+  roles:
+    - base
+    - security
+    - mysql
+    - dns
+    - web_server
+    - letsencrypt

@@ -1,0 +1,11 @@
+<VirtualHost *:443>
+
+    ServerName {{ domain }}
+    ServerAlias www.{{ domain }}
+    DocumentRoot /var/www/{{ domain }}
+
+    SSLEngine on
+    SSLCertificateFile {{ ssl_cert_path }}
+    SSLCertificateKeyFile {{ ssl_certkey_path }}
+
+</VirtualHost>

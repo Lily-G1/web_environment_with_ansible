@@ -1,0 +1,64 @@
+- name: Start and enable MySQL service
+  service:
+    name: mysql
+    state: started
+    enabled: yes
+
+# mysql_secure_installation:
+- name: Copy user-my.cnf file with password credentials
+  template:
+    src: "user-my.cnf.j2"
+    dest: "~/.my.cnf"
+    owner: root
+    mode: 0600
+
+- name: Set MySQL root password
+  mysql_user:
+    login_user:
+    login_password:
+    user: root
+    password: "{{ mysql_root_password }}"
+    login_unix_socket: /var/run/mysqld/mysqld.sock
+    check_implicit_admin: true
+    column_case_sensitive: true
+    state: present
+
+
+- name: disable mysql remote root login
+  mysql_user:
+    login_user: root
+    login_password: "{{ mysql_root_password }}"
+    user: root
+    host: "{{ ansible_fqdn | lower }}"
+    column_case_sensitive: true
+    state: absent
+
+- name: remove mysql anonymous users
+  mysql_user:
+    login_user: root
+    login_password: "{{ mysql_root_password }}"
+    user: ''
+    host_all: yes
+    column_case_sensitive: true
+    state: absent
+
+- name: remove test database
+  mysql_db:
+    login_user: root
+    login_password: "{{ mysql_root_password }}"
+    db: test
+    state: absent
+  register: remove_testdb
+
+- name: remove test database privileges
+  block:
+    - name: delete test database entries
+      shell: >
+        mysql -u root -p{{ mysql_root_password }} 
+        -e "DELETE FROM mysql.db WHERE Db='test' OR Db='test\\_%'"
+      register: delete_entries
+
+    - name: flush test database privileges
+      shell: mysql -u root -p{{ mysql_root_password }} -e "FLUSH PRIVILEGES"
+      when: delete_entries.changed
+  when: remove_testdb.changed

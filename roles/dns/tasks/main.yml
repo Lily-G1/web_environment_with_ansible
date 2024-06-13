@@ -1,0 +1,56 @@
+- name: start Bind9 service
+  tags: bind9, DNS
+  service:
+    name: bind9
+    state: started
+    enabled: yes
+
+
+- name: indicate ipv4 service in Bind9
+  tags: bind9, DNS
+  lineinfile:
+    path: /etc/default/named
+    regexp: '^OPTIONS'
+    line: OPTIONS="-u bind -4"
+  notify: restart_bind9
+
+
+- name: add forwarders to Bind9 options
+  tags: bind9, DNS
+  blockinfile:
+    path: /etc/bind/named.conf.options
+    marker: "# {mark} ANSIBLE MANAGED BLOCK - DO NOT EDIT THIS SECTION MANUALLY"
+    block: |
+      forwarders {
+            8.8.8.8;
+            8.8.4.4;
+      };
+    insertafter: '^.*listen-on-v6 { any; };.*$'
+  notify: restart_bind9
+
+
+- name: create new DNS zone
+  tags: bind9, DNS
+  blockinfile:
+    path: /etc/bind/named.conf.local
+    marker: "# {mark} ANSIBLE MANAGED BLOCK - DO NOT EDIT THIS SECTION MANUALLY"
+    block: |
+      zone "{{ domain }}" {
+              type master;
+              file "/etc/bind/db.{{ domain }}";
+      };
+  notify: restart_bind9
+
+
+- name: create custom zone file with DNS records
+  tags: files, bind9, lamp, DNS
+  template:
+    src: "db.{{ domain }}.j2"
+    dest: "/etc/bind/db.{{ domain }}"
+  notify: restart_bind9
+
+
+#  - name: check for syntax errors (INCLUDE below COMMANDS in GITHUB REPO README)
+#    script: $ named-checkconf
+#    script: $ named-checkzone agsindesign.arc /etc/bind/db.agsindesign.arc
+

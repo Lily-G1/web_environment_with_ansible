@@ -1,0 +1,9 @@
+mysql_root_username: root
+mysql_root_password: root_password
+domain: liliangaladima.online
+ssl_domain: liliangaladima.online-le-ssl 
+ip: 197.211.53.6  
+external_ip: 91.189.88.181
+pub_dns_ip: 8.8.8.8
+dns_check_timeout: 1200
+dns_check_interval: 60

@@ -1,0 +1,81 @@
+- name: Create site directories
+  file:
+    path: "/var/www/{{ item }}"
+    state: directory
+    owner: www-data
+    group: www-data
+    recurse: yes
+    mode: 0755
+  with_items:
+  - "{{ domain }}"
+
+
+- name: Copy site files
+  tags: copy_site
+  copy:
+    src: "{{ domain }}/"
+    dest: "/var/www/{{ domain }}/"
+    owner: www-data
+    group: www-data
+    mode: 0755
+
+
+- name: Create Apache virtualhost config file
+  template:
+    src: "v_host.j2"
+    dest: "/etc/apache2/sites-available/{{ domain }}.conf"
+    owner: root
+    group: root
+    mode: 0755
+
+
+- name: Enable Apache virtualhost config
+  shell: | 
+      a2ensite "{{ domain }}"
+      a2dissite 000-default.conf
+      sudo a2enmod ssl
+      a2enmod rewrite
+  notify: restart_apache
+
+
+- name: Ensure DNS is propagated
+  tags: propagate_wait
+  wait_for:
+    host: "{{ domain }}"
+    port: 80
+    state: started
+    timeout: "{{ dns_check_timeout }}"
+    sleep: "{{ dns_check_interval }}"
+  register: dns_check
+
+
+#- name: Check if DNS is propagated
+#  tags: check_DNS
+#  fail:
+#    msg: "DNS propagation failed for {{ domain }}"
+#  when: dns_check.elapsed >= dns_check_timeout
+
+
+- name: Generate letsencyrpt certificate
+  tags: role_le
+  include_role:
+    name: letsencrypt
+#  when: dns_check.elapsed < dns_check_timeout
+
+
+- name: Create Apache SSL virtualhost config file
+  tags: apache_ssl
+  template:
+    src: "v_host_ssl.j2"
+    dest: "/etc/apache2/sites-available/{{ ssl_domain }}.conf"
+    owner: root
+    group: root
+    mode: 0755
+#  when: dns_check.elapsed < dns_check_timeout
+
+
+- name: Enable Apache SSL virtualhost config
+  shell: | 
+      a2ensite "{{ ssl_domain }}"
+      systemctl reload apache2
+#  when: dns_check.elapsed < dns_check_timeout
