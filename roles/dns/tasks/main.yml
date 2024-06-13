@@ -48,9 +48,3 @@
     src: "db.{{ domain }}.j2"
     dest: "/etc/bind/db.{{ domain }}"
   notify: restart_bind9
-
-
-#  - name: check for syntax errors (INCLUDE below COMMANDS in GITHUB REPO README)
-#    script: $ named-checkconf
-#    script: $ named-checkzone agsindesign.arc /etc/bind/db.agsindesign.arc
-
