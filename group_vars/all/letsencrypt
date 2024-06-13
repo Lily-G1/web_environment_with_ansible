@@ -2,13 +2,12 @@
 acme_challenge_type: http-01
 acme_directory: https://acme-v02.api.letsencrypt.org/directory
 acme_version: 2
-acme_email: anyagaladima@gmail.com
+acme_email: 'email@address.com'
 letsencrypt_dir: /etc/letsencrypt
 letsencrypt_keys_dir: /etc/letsencrypt/keys
 letsencrypt_csrs_dir: /etc/letsencrypt/csrs
 letsencrypt_certs_dir: /etc/letsencrypt/certs
 letsencrypt_account_key: /etc/letsencrypt/account/account.key
-ssl_cert_path: /etc/letsencrypt/certs/fullchain_liliangaladima.online
-ssl_certkey_path: /etc/letsencrypt/keys/liliangaladima.online.key
-#domain_name: liliangaladima.online
+ssl_cert_path: /etc/letsencrypt/certs/fullchain_'yourdomain'
+ssl_certkey_path: /etc/letsencrypt/keys/'yourdomain'.key
 
