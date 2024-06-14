@@ -18,7 +18,7 @@
     owner: www-data
     group: www-data
     mode: 0755
-
+    
 
 - name: Create Apache virtualhost config file
   template:
@@ -49,18 +49,10 @@
   register: dns_check
 
 
-#- name: Check if DNS is propagated
-#  tags: check_DNS
-#  fail:
-#    msg: "DNS propagation failed for {{ domain }}"
-#  when: dns_check.elapsed >= dns_check_timeout
-
-
 - name: Generate letsencyrpt certificate
   tags: role_le
   include_role:
     name: letsencrypt
-#  when: dns_check.elapsed < dns_check_timeout
 
 
 - name: Create Apache SSL virtualhost config file
@@ -71,11 +63,9 @@
     owner: root
     group: root
     mode: 0755
-#  when: dns_check.elapsed < dns_check_timeout
 
 
 - name: Enable Apache SSL virtualhost config
   shell: | 
       a2ensite "{{ ssl_domain }}"
       systemctl reload apache2
-#  when: dns_check.elapsed < dns_check_timeout
