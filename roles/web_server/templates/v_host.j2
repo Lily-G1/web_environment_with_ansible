@@ -12,7 +12,7 @@
 <Directory /var/www/{{ domain }}/admin>
 	Require all denied
 	Require ip {{ ip }}
-	Require ip 10.0.2.15/24
+	Require ip {{ network_ip }}
 	Require local 
 </Directory>
 
