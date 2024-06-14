@@ -11,5 +11,5 @@ Various components of the ansible playbook have been seperated into 'roles' for 
 - **play.yml** file is used to run the entire playbook  
 - All variables are stored in the '**group_vars**' directory  
 
-## Improvements:
+## Improvement:
 Enhance security by using ansible-vault to store sensitive information such as passwords. Also include an Intrusion Detection system  
