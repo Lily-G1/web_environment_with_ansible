@@ -2,7 +2,8 @@ mysql_root_username: root
 mysql_root_password: 'your_root_password'
 domain: 'your_domain'
 ssl_domain: 'your_domain'-le-ssl 
-ip: 'your_ip_address'  
+ip: 'your_ip_address'
+network_ip: 'your_network_ip_address'
 external_ip: 'your_external_ip_address'
 pub_dns_ip: 'your_pub_dns_ip_address'
 dns_check_timeout: 1200  #inseconds
