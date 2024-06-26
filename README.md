@@ -12,5 +12,5 @@ Various components of the playbook have been seperated into 'roles' for better m
 - All variables are stored in the '**group_vars**' directory  
 
 ## Improvement:
-Enhance security by using ansible-vault to store sensitive information such as passwords  
-Include an Intrusion Detection system to monitor network traffic & protect against malicious activities  
+- Enhance security by using ansible-vault to store sensitive information such as passwords  
+- Include an Intrusion Detection system to monitor network traffic & protect against malicious activities  
